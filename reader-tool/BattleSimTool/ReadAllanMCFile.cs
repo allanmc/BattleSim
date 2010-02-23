@@ -13,17 +13,6 @@ namespace BattleSimTool
             List<float> list = new List<float>();
             Stream s = File.OpenRead(filePath);
             BinaryReader reader = new BinaryReader(s);
-            char[] buf = new char[8];
-            reader.Read(buf, 0, 8);
-            StringBuilder b = new StringBuilder();
-            for (int i = 0; i < buf.Length; i++)
-                b.Append(buf[i].ToString());
-            if (!b.ToString().Equals("AAUBASIM"))
-            {
-                throw new Exception("CRASH");
-            }
-
-            buf = new char[4];
 
             float val = 0.0f;
             int counter = 0;

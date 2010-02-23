@@ -30,6 +30,7 @@
         private void InitializeComponent()
         {
             this.listView1 = new System.Windows.Forms.ListView();
+            this.ID = new System.Windows.Forms.ColumnHeader();
             this.Reward = new System.Windows.Forms.ColumnHeader();
             this.Friendly1 = new System.Windows.Forms.ColumnHeader();
             this.Friendly2 = new System.Windows.Forms.ColumnHeader();
@@ -37,7 +38,6 @@
             this.Enemy1 = new System.Windows.Forms.ColumnHeader();
             this.Enemy2 = new System.Windows.Forms.ColumnHeader();
             this.Enemy3 = new System.Windows.Forms.ColumnHeader();
-            this.ID = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // listView1
@@ -57,10 +57,14 @@
             this.listView1.GridLines = true;
             this.listView1.Location = new System.Drawing.Point(-1, -3);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(923, 354);
+            this.listView1.Size = new System.Drawing.Size(925, 354);
             this.listView1.TabIndex = 15;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
+            // 
+            // ID
+            // 
+            this.ID.Text = "ID";
             // 
             // Reward
             // 
@@ -97,20 +101,16 @@
             this.Enemy3.Text = "Enemy3";
             this.Enemy3.Width = 120;
             // 
-            // ID
-            // 
-            this.ID.Text = "ID";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(922, 351);
+            this.ClientSize = new System.Drawing.Size(924, 351);
             this.Controls.Add(this.listView1);
-            this.MaximumSize = new System.Drawing.Size(930, 800);
-            this.MinimumSize = new System.Drawing.Size(930, 1);
+            this.MaximumSize = new System.Drawing.Size(940, 800);
+            this.MinimumSize = new System.Drawing.Size(940, 38);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "BattleSim-files Reader";
             this.ResumeLayout(false);
 
         }

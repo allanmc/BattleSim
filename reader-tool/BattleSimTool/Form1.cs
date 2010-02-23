@@ -21,27 +21,23 @@ namespace BattleSimTool
         public Form1()
         {
             InitializeComponent();
+            this.Show();
             GameStuff gameStuff = new GameStuff();
 
             OpenFileDialog op = new OpenFileDialog();
-            string filePath = "";
-            if (filePath == "")
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append("C:\\Program Files\\Spring\\AI\\Skirmish\\BattleSim\\666");
+            op.Filter = "Battles-Data files (*.dat)|*.dat";
+            string filePath;
 
-                sb.Append("\\battles.bin");
-                filePath = sb.ToString();
-            }
+            filePath = "C:\\Program Files\\Spring\\AI\\Skirmish\\BattleSim\\666";
 
-            if (!File.Exists(filePath))
-            {
-                DialogResult res = op.ShowDialog();
-                if (DialogResult.OK != res)
-                    return;
-                filePath = op.FileName;
-            }
+            op.DefaultExt = ".dat";
+            op.InitialDirectory = filePath;
             
+            DialogResult res = op.ShowDialog();
+            if (DialogResult.OK != res)
+                return;
+            filePath = op.FileName;
+        
 
             m_reader = new ReadAllanMCFile();
             List<float> values = m_reader.GetValues(filePath);
@@ -60,7 +56,6 @@ namespace BattleSimTool
                 current_game++;
                 //this.Show();
             }
-            
         }
     }
 }
