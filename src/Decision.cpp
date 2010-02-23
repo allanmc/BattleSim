@@ -7,7 +7,6 @@ using namespace std;
 using namespace springai;
 using namespace brainSpace;
 
-int COMMANDERID = -1;
 Decision::Decision(AIClasses* aiClasses)
 {
 	ai = aiClasses;
