@@ -1,5 +1,8 @@
 Simple AI for Spring RTS BA for simulating many battles between various compilations of groups
 
+Requires this patched version of spring:
+http://github.com/initram/springheadless/
+
 Used to do research for the brAIn AI: http://github.com/allanmc/Spring-brAIn/
 
 Completed as a project in Machine Intelligence at Aalborg University, Denmark.
