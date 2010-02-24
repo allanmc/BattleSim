@@ -57,7 +57,7 @@ Utility::Utility( AIClasses* aiClasses )
 			{
 				long begin = bfs->tellg();
 				bfs->seekg(0, ios::end);
-				long length = bfs->tellg() - begin - BATTLES_HEADER_SIZE;
+				long length = (long)bfs->tellg() - begin - BATTLES_HEADER_SIZE;
 				if ( length == TOTAL_NUMBER_OF_GAMES*4 )
 				{
 					itsOkAlarm = true;	
