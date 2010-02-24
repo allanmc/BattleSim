@@ -90,12 +90,12 @@ void Decision::Update(int frame)
 
 		if (CALCULATE_AVERAGE) ai->utility->CalculateAverage();
 	}
-
+		
 	if ( (ai->callback->GetTeamId()== 0 && (frame == 1 || (frame>0 && frame_reset!=0)) && frame>=frame_reset && ai->utility->UnitsLeft(0)==1 && ai->utility->UnitsLeft(1)==1)
 		||
 		(ai->callback->GetTeamId()== 1 && ai->AIs->find(0)->second->HasSpawned()) )
 	{
-		ai->utility->ChatMsg("Checking if we should stop playing: %d, %d", ((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0, group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1);
+		ai->utility->ChatMsg("Checking if we should stop playing at game %d: %d, %d", group->GetCurrentGame(), ((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0, group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1);
 		if(frame != 1 && (((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0 || group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1 )) //requires 125 runs
 		{
 			if (group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1)
