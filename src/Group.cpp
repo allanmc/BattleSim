@@ -1,4 +1,5 @@
 #include "Group.h"
+#include <sstream>
 
 using namespace std;
 using namespace springai;
@@ -225,13 +226,9 @@ namespace brainSpace
 		return id;
 	}
 
-	int Group::GetClosestGame()
+	//Return unitType, and populates `result`
+	int Group::CountGroupUnits(vector<Unit*> units_old, vector<int> &result)
 	{
-		//TODO: Finish
-		int game = -1;
-		vector<Unit*> friendlies = ai->callback->GetFriendlyUnits();
-		vector<Unit*> enemies = ai->callback->GetEnemyUnits();
-		
 		int ground = 0;
 		int air = 0;
 		//init vectors
@@ -247,9 +244,9 @@ namespace brainSpace
 		}
 		
 		//fill vectors
-		for( unsigned int i=0 ; i < friendlies.size() ; i++ )
+		for( unsigned int i=0 ; i < units_old.size() ; i++ )
 		{
-			UnitDef* ud = friendlies[i]->GetDef();
+			UnitDef* ud = units_old[i]->GetDef();
 			int unitType;
 			if(ud->IsAbleToFly())
 			{
@@ -265,6 +262,7 @@ namespace brainSpace
 			{
 				if( strcmp(ud->GetName(), units_all[unitType][j]) == 0 )
 				{
+					ai->utility->ChatMsg("Added unit: %s", ud->GetName());
 					units[unitType][j]++;
 					break;
 				}
@@ -272,11 +270,46 @@ namespace brainSpace
 			delete ud;
 		}
 		int unitType = (air > ground ? 1 : 0);
-		int *group = GetGroupFromUnits(units[unitType]);
+		result = units[unitType];
 
+		return unitType;
+	}
+
+	string Group::PrintGame(int game)
+	{
+		stringstream output;
+		output << "GAME #" << game << ": ";
+		for (int i = 0; i <= 1 ; i++) {
+			output << "Team #" << i << " - ";
+			vector<const char*> team = GetNewUnits(i, game);
+			output << team[0] << ", ";
+			output << team[1] << ", ";
+			output << team[2] << "; ";
+		}
+		return output.str();
+	}
+
+	int Group::GetClosestGame()
+	{
+		vector<Unit*> friendlies = ai->callback->GetFriendlyUnits();
+		vector<Unit*> enemies = ai->callback->GetEnemyUnits();
+		
+		vector<int> units;
+		int friendlyUnitType = CountGroupUnits(friendlies, units);
+		int *friendlyGroup = GetGroupFromUnits(units);
+		units.clear();
+		int enemyUnitType = CountGroupUnits(enemies, units);
+		int *enemyGroup = GetGroupFromUnits(units);
+		
+		int friendlyId = GetId(friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
+		int enemiesId = GetId(enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
+		
+		int game = friendlyId * sqrt(TOTAL_NUMBER_OF_GAMES) + enemiesId;
+		
 		ai->utility->DeleteUnits(friendlies);
 		ai->utility->DeleteUnits(enemies);
-		delete[] group;
+		delete[] friendlyGroup;
+		delete[] enemyGroup;
 
 		return game;
 	}
@@ -296,11 +329,14 @@ namespace brainSpace
 				{
 					best.insert(it, pair<int, int>(i, units[i]));
 					inserted = true;
+					break;
 				}
 				it++;
 			}
 			if( !inserted )
+			{
 				best.push_back(pair<int,int>(i, units[i]));
+			}
 		}
 		
 		int *outUnits = new int[3];
@@ -309,6 +345,7 @@ namespace brainSpace
 		it = best.begin();
 		outUnits[0] = (*it).first;
 		float ratio = (float)(*it).second / (float)size;
+		ai->utility->ChatMsg("Ratio: %f", ratio);
 		if( ratio > 0.5 )
 		{
 			outUnits[1] = (*it).first;

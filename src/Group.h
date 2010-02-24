@@ -32,6 +32,8 @@ namespace brainSpace
 
 		std::vector<springai::Unit*> newUnits;
 
+		std::string PrintGame(int game);
+		int CountGroupUnits(std::vector<springai::Unit*> units_old, std::vector<int> &result);
 		int GetClosestGame();
 		int* GetGroupFromUnits(std::vector<int> units);
 		

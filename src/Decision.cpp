@@ -117,6 +117,10 @@ void Decision::Update(int frame)
 		else
 		{
 			group->GiveNewUnits();
+			if (ai->callback->GetTeamId()==1)
+			{
+				ai->utility->ChatMsg("I think this is the game %d, but we are in %d - %s VS %s", group->GetClosestGame(), group->GetCurrentGame(), group->PrintGame(group->GetClosestGame()).c_str(), group->PrintGame(group->GetCurrentGame()).c_str() );
+			}
 			lastSpawnFrame = frame;
 			ai->hasSpawned = true;
 
