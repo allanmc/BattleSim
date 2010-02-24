@@ -68,7 +68,7 @@ Utility::Utility( AIClasses* aiClasses )
 		bfs->close();
 		battles_file = file_name.str();
 
-		bfs = new fstream( battles_file.c_str(), ios::out | ios::binary | ios::app);
+		bfs = new fstream( battles_file.c_str(), ios::out | ios::binary/* | ios::app*/);
 	}
 	
 	delete dirs;
@@ -213,13 +213,16 @@ float Utility::ReadBattleValue(int current_game)
 void Utility::WriteBattleValue(int current_game, float value)
 {
 	
-	ai->utility->Log( ALL, MISC, "Util::WriteBattleValue() current_game:%d", current_game );
+	ai->utility->Log( ALL, MISC, "Util::WriteBattleValue() current_game:%d = %f", current_game, value );
 
 	if (ai->callback->GetTeamId()!=0) {
 		return;
 	}
 	bfs->seekp(BATTLES_HEADER_SIZE+current_game*sizeof(value), ios::beg);
+	ai->utility->Log( ALL, MISC, "Seeking to byte: %d, %d, %d", current_game*sizeof(value), sizeof(value), (long)bfs->tellp() );
+	ai->utility->Log( ALL, MISC, "BFS bits: %d, %d, %d, %d", bfs->eof(), bfs->fail(), bfs->bad(), bfs->good() );
 	bfs->write( (char*)&value, sizeof(value) );
+	bfs->flush();
 }
 
 int Utility::GetCurrentGameNumber()

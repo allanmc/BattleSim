@@ -12,6 +12,7 @@ Decision::Decision(AIClasses* aiClasses)
 	ai = aiClasses;
 	gameCounter = 0;
 	ai->frame = 0;
+	shuttingDown = false;
 	resettingGame = false;
 	frame_reset = 0;
 	frame_timeout = 0;
@@ -79,6 +80,10 @@ void Decision::Update(int frame)
 {
 	//ai->utility->Log(ALL, MISC, "Currentframe: %i", frame);
 	
+	if (shuttingDown) {
+		return;
+	}
+
 	gameCounter = group->GetCurrentGame();
 	if(frame == 1)
 	{	
@@ -95,17 +100,19 @@ void Decision::Update(int frame)
 		||
 		(ai->callback->GetTeamId()== 1 && ai->AIs->find(0)->second->HasSpawned()) )
 	{
-		ai->utility->ChatMsg("Checking if we should stop playing at game %d: %d, %d", group->GetCurrentGame(), ((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0, group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1);
-		if(frame != 1 && (((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0 || group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1 )) //requires 125 runs
+		//ai->utility->ChatMsg("Checking if we should stop playing at game %d: %d, %d", group->GetCurrentGame(), ((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0, group->GetCurrentGame()+1 >= TOTAL_NUMBER_OF_GAMES-1);
+		if(ai->callback->GetTeamId()== 0 && frame != 1 && (((group->GetCurrentGame()+2) % GAMES_BEFORE_RESTART) == 0 || group->GetCurrentGame()+1 >= TOTAL_NUMBER_OF_GAMES-1 )) //requires 125 runs
 		{
 			if (group->GetCurrentGame() >= TOTAL_NUMBER_OF_GAMES-1)
 			{
 				ai->utility->Log(ALL, BATTLESIM, "We have finished with the simulations! I no longer have a purpose...");
 				group->SetCurrentGame(-1);
 			}
-			ai->utility->ChatMsg("Game #%d", group->GetCurrentGame());
+			ai->utility->ChatMsg("Final Game #%d", group->GetCurrentGame());
 			group->SaveCurrentGame();
 			ai->utility->SuicideAllUnits();
+			shuttingDown = true;
+			return;
 		}
 		else
 		{

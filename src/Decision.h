@@ -34,6 +34,7 @@ private:
 	int frame_reset;
 	int frame_timeout;
 	
+	bool shuttingDown;
 	bool resettingGame;
 	double lastTime;
 	int timeouts;
