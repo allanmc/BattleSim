@@ -55,13 +55,12 @@ Utility::Utility( AIClasses* aiClasses )
 			bfs = new fstream ( file_name.str().c_str() , ios::in) ;
 			if ( bfs->is_open() )
 			{
-				bfs->seekg( 0, ios::end );
-				int length = bfs->tellg();
-				length -= BATTLES_HEADER_SIZE;
+				long begin = bfs->tellg();
+				bfs->seekg(0, ios::end);
+				length = bfs->tellg() - begin - BATTLES_HEADER_SIZE;
 				if ( length == TOTAL_NUMBER_OF_GAMES*4 )
 				{
-					itsOkAlarm = true;
-					
+					itsOkAlarm = true;	
 				}
 				Log(ALL, MISC, "Current: %d, Length: %d, Games*4: %d", current, length, TOTAL_NUMBER_OF_GAMES*4);
 			}
