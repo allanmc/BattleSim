@@ -13,25 +13,26 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
+		current_game = 14;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
 		
 		vector<const char*> ground;
 		vector<const char*> air;
-		ground.push_back("armpw");
-		ground.push_back("armrock");
-		ground.push_back("armham");
-		ground.push_back("armjeth");
-		ground.push_back("armwar");
+		ground.push_back("armpw");		//0
+		ground.push_back("armrock");	//1
+		ground.push_back("armham");		//2
+		ground.push_back("armjeth");	//3
+		ground.push_back("armwar");		//4
 		//ground.push_back("armflea");
-		ground.push_back("armfav");
-		ground.push_back("armflash");
-		ground.push_back("armpincer");
-		ground.push_back("armstump");
-		ground.push_back("tawf013");
-		ground.push_back("armjanus");
-		ground.push_back("armsam");
-		ground.push_back("nullground");
+		ground.push_back("armfav");		//5
+		ground.push_back("armflash");	//6
+		ground.push_back("armpincer");	//7
+		ground.push_back("armstump");	//8
+		ground.push_back("tawf013");	//9
+		ground.push_back("armjanus");	//10
+		ground.push_back("armsam");		//11
+		ground.push_back("nullground");	//12
 
 		//air.push_back("armpeep");
 		air.push_back("nullair");
@@ -169,6 +170,7 @@ namespace brainSpace
 			
 			lastGroup = GetId(unitType, max, max, max);
 		}
+	
 		GroupType = unitType;
 		int prevUnit = 0, tmpUnit = 0;
 		int tmpId = 0;
@@ -207,14 +209,14 @@ namespace brainSpace
 	}
 
 	int Group::SumRange(int max, int min, int num){
-		return (max + min)*num/2;
+		return (max + min)*(num/2);
 	}
 
 	int Group::GetId(int unitType, int unit1, int unit2, int unit3) {
 		int id = 0;
 		//unit1
 		int num_units = units_all[unitType].size();
-		int max = num_units;
+		int max = num_units ;
 		for (int i = 0; i < unit1; i++) {
 			id += SumRange(max - i, 1, max - i);
 		}
@@ -262,7 +264,7 @@ namespace brainSpace
 			{
 				if( strcmp(ud->GetName(), units_all[unitType][j]) == 0 )
 				{
-					ai->utility->ChatMsg("Added unit: %s", ud->GetName());
+					//ai->utility->ChatMsg("Added unit: (%d) %s", j, ud->GetName());
 					units[unitType][j]++;
 					break;
 				}
@@ -304,6 +306,21 @@ namespace brainSpace
 		int friendlyId = GetId(friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
 		int enemiesId = GetId(enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
 		
+		//Bug test START
+
+		ai->utility->ChatMsg("Test #1: %s", PrintGame(GetId(0, 0, 0, 1)).c_str());
+		ai->utility->ChatMsg("Test #2: %s", PrintGame(GetId(0, 0, 0, 10)).c_str());
+		ai->utility->ChatMsg("Test #3: %s", PrintGame(GetId(0, 0, 0, 11)).c_str());
+		ai->utility->ChatMsg("Test #4: %s", PrintGame(GetId(0, 0, 0, 12)).c_str());
+		ai->utility->ChatMsg("Test #5: %s", PrintGame(GetId(0, 0, 1, 0)).c_str());
+		ai->utility->ChatMsg("Test #6: %s", PrintGame(GetId(0, 1, 0, 0)).c_str());
+
+		ai->utility->ChatMsg("Got friendly team (%d) consisting of type %d units: %d, %d and %d", friendlyId, friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
+
+		ai->utility->ChatMsg("Got enemy team (%d) consisting of type %d units: %d, %d and %d", enemiesId, enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
+		//Bug test END
+
+
 		int game = friendlyId * sqrt(TOTAL_NUMBER_OF_GAMES) + enemiesId;
 		
 		ai->utility->DeleteUnits(friendlies);
@@ -344,11 +361,13 @@ namespace brainSpace
 		int size = (*it).second + (*(++it)).second + (*(++it)).second;
 		it = best.begin();
 		outUnits[0] = (*it).first;
+		//ai->utility->ChatMsg("Group #1 set to: %d, count = %d", outUnits[0], (*(it)).second);
 		float ratio = (float)(*it).second / (float)size;
-		ai->utility->ChatMsg("Ratio: %f", ratio);
+		//ai->utility->ChatMsg("Ratio: %f", ratio);
 		if( ratio > 0.5 )
 		{
 			outUnits[1] = (*it).first;
+			//ai->utility->ChatMsg("Group #2 set to: %d, count = %d", outUnits[1], (*(it)).second);
 			if( ratio > 0.8333 )
 			{
 				outUnits[2] = (*it).first;
@@ -360,9 +379,12 @@ namespace brainSpace
 		}
 		else
 		{
+			
 			outUnits[1] = (*(++it)).first;
+			//ai->utility->ChatMsg("Group #2 set to: %d, count = %d", outUnits[1], (*(it)).second);
 			outUnits[2] = (*(++it)).first;
 		}
+		//ai->utility->ChatMsg("Group #3 set to: %d, count = %d", outUnits[2], (*(it)).second);
 
 		best.clear();
 
