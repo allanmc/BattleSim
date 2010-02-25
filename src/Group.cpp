@@ -13,7 +13,7 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
-		current_game = 90005;
+		//current_game = 90005;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
 		
