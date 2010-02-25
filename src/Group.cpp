@@ -13,7 +13,7 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
-		current_game = 14;
+		current_game = 90005;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
 		
@@ -161,6 +161,8 @@ namespace brainSpace
 		int groupId = (teamId == 0 ? currentGame % numberOfGroups : currentGame / numberOfGroups );
 		int lastGroup = GetId(unitType, max, max, max);
 		
+		ai->utility->ChatMsg("GetNewUnits groupId: %d", groupId);
+
 		if(groupId > lastGroup)
 		{
 
@@ -209,7 +211,7 @@ namespace brainSpace
 	}
 
 	int Group::SumRange(int max, int min, int num){
-		return (max + min)*(num/2);
+		return (max + min)*num/2;
 	}
 
 	int Group::GetId(int unitType, int unit1, int unit2, int unit3) {
@@ -221,7 +223,7 @@ namespace brainSpace
 			id += SumRange(max - i, 1, max - i);
 		}
 		//unit2
-		id += SumRange(num_units - unit1, num_units - (unit2 - unit1), unit2-unit1 );
+		id += SumRange(num_units - unit1, num_units - (unit2 - unit1 - 1), unit2-unit1 );
 		//unit3
 		id += unit3 - unit2;
 		
@@ -233,6 +235,7 @@ namespace brainSpace
 	{
 		int ground = 0;
 		int air = 0;
+		int unknownUnits = 0;
 		//init vectors
 		vector<vector<int> > units;
 		for( unsigned int i = 0 ; i < units_all.size() ; i++ )
@@ -260,12 +263,14 @@ namespace brainSpace
 				unitType = 0;
 				ground++;
 			}
+			unknownUnits++;//Pretend we won't find the unit
 			for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
 			{
 				if( strcmp(ud->GetName(), units_all[unitType][j]) == 0 )
 				{
 					//ai->utility->ChatMsg("Added unit: (%d) %s", j, ud->GetName());
 					units[unitType][j]++;
+					unknownUnits--;//We found the unit, so go back to all-good :-)
 					break;
 				}
 			}
@@ -273,6 +278,11 @@ namespace brainSpace
 		}
 		int unitType = (air > ground ? 1 : 0);
 		result = units[unitType];
+
+		if ( unknownUnits>0 )
+		{
+			ai->utility->Log(ALL, MISC, "CountGroupUnits encountered %d unknown units!", unknownUnits );
+		}
 
 		return unitType;
 	}
@@ -291,29 +301,134 @@ namespace brainSpace
 		return output.str();
 	}
 
+	void Group::PrintUnitCounts(int unitType, vector<int> units) 
+	{
+		ai->utility->ChatMsg("Printing unit counts:");
+		for( unsigned int i=0 ; i < units.size() ; i++ )
+		{
+			ai->utility->ChatMsg("%s: %d", units_all[unitType][i], units[i]);
+		}
+		ai->utility->ChatMsg(".");
+	}
+
+	int Group::GetUnitId(int unitType, const char* name)
+	{
+		for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
+		{
+			if( strcmp(name, units_all[unitType][j]) == 0 )
+			{
+				return j;
+			}
+		}
+		return -1;
+	}
+
+	int Group::GetNullId(int unitType)
+	{
+		for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
+		{
+			if( strcmp("nullground", units_all[unitType][j]) == 0 || strcmp("nullair", units_all[unitType][j]) == 0 )
+			{
+				return j;
+			}
+		}
+		return -1;
+	}
+
 	int Group::GetClosestGame()
 	{
 		vector<Unit*> friendlies = ai->callback->GetFriendlyUnits();
+		RemoveCommander(friendlies);
 		vector<Unit*> enemies = ai->callback->GetEnemyUnits();
+		RemoveCommander(enemies);
+		int num_friendlies = friendlies.size();
+		int num_enemies = enemies.size();
+
+		vector<int> friendlyUnits;
+		vector<int> enemyUnits;
+		int friendlyUnitType = CountGroupUnits(friendlies, friendlyUnits);
+		int enemyUnitType = CountGroupUnits(enemies, enemyUnits);
+
+		//Make the unit counts of the two teams match, by adding null-units
+		int diff = num_friendlies - num_enemies;
+		if ( diff > 0 )
+		{
+			enemyUnits[GetNullId(enemyUnitType)] = diff;
+			num_enemies += diff; 
+		}
+		else
+		{
+			//Always ensure we have one null-unit, so that no group of size 0 can get a slot
+			enemyUnits[GetNullId(enemyUnitType)] = 1;
+		}
+
+		if ( diff < 0 )
+		{
+			friendlyUnits[GetNullId(friendlyUnitType)] = -1*diff;
+			num_friendlies -= diff; 
+		}
+		else
+		{
+			//Always ensure we have one null-unit, so that no group of size 0 can get a slot
+			friendlyUnits[GetNullId(friendlyUnitType)] = 1;
+		}	
+		ai->utility->ChatMsg("Number of enemy and friendly units should now match: %d == %d", num_enemies, num_friendlies);
 		
-		vector<int> units;
-		int friendlyUnitType = CountGroupUnits(friendlies, units);
-		int *friendlyGroup = GetGroupFromUnits(units);
-		units.clear();
-		int enemyUnitType = CountGroupUnits(enemies, units);
-		int *enemyGroup = GetGroupFromUnits(units);
+		//Make the units count of the two team match the battle-dad of 3*4-player teams
+		float ratio = (float)(3*4) / num_friendlies;
+		ai->utility->ChatMsg("Battle match ratio: %f", ratio);
+		num_friendlies *= ratio;
+		num_enemies *= ratio;
+		ai->utility->ChatMsg("Number of enemy and friendly units should now be 12: %d == %d", num_enemies, num_friendlies);
+		for ( unsigned int i = 0; i < units_all[friendlyUnitType].size() ; i++ )
+		{
+			friendlyUnits[i] *= ratio;
+		}
 		
+		for ( unsigned int i = 0; i < units_all[enemyUnitType].size() ; i++ )
+		{
+			enemyUnits[i] *= ratio;
+		}
+
+
+		PrintUnitCounts(friendlyUnitType, friendlyUnits);
+		PrintUnitCounts(enemyUnitType, enemyUnits);
+
+		int *friendlyGroup = GetGroupFromUnits(friendlyUnits);
+		int *enemyGroup = GetGroupFromUnits(enemyUnits);
+		
+
 		int friendlyId = GetId(friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
 		int enemiesId = GetId(enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
 		
 		//Bug test START
 
-		ai->utility->ChatMsg("Test #1: %s", PrintGame(GetId(0, 0, 0, 1)).c_str());
-		ai->utility->ChatMsg("Test #2: %s", PrintGame(GetId(0, 0, 0, 10)).c_str());
-		ai->utility->ChatMsg("Test #3: %s", PrintGame(GetId(0, 0, 0, 11)).c_str());
-		ai->utility->ChatMsg("Test #4: %s", PrintGame(GetId(0, 0, 0, 12)).c_str());
-		ai->utility->ChatMsg("Test #5: %s", PrintGame(GetId(0, 0, 1, 0)).c_str());
-		ai->utility->ChatMsg("Test #6: %s", PrintGame(GetId(0, 1, 0, 0)).c_str());
+		unsigned int printing_since = 0;
+		for ( unsigned int i = 0; i < TOTAL_NUMBER_OF_GAMES ; i++)
+		{
+			vector<const char*> units_tmp = GetNewUnits(0, i);
+			unsigned int new_id = GetId(0, GetUnitId(0, units_tmp[0]), GetUnitId(0, units_tmp[1]),GetUnitId(0, units_tmp[2]));
+
+			if ( i!=new_id && printing_since == 0 ) {
+				printing_since = i;
+				i = i - 5;
+				continue;
+			}
+
+			if (printing_since > 0) {
+				ai->utility->ChatMsg("Game #%d = %d, %d, %d >= %d",
+					i,
+					GetUnitId(0, units_tmp[0]),
+					GetUnitId(0, units_tmp[1]),
+					GetUnitId(0, units_tmp[2]),
+					new_id
+					);
+				if ( i > printing_since + 5 )
+				{
+					break;
+				}
+			}
+		}
 
 		ai->utility->ChatMsg("Got friendly team (%d) consisting of type %d units: %d, %d and %d", friendlyId, friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
 
