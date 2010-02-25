@@ -161,8 +161,6 @@ namespace brainSpace
 		int groupId = (teamId == 0 ? currentGame % numberOfGroups : currentGame / numberOfGroups );
 		int lastGroup = GetId(unitType, max, max, max);
 		
-		ai->utility->ChatMsg("GetNewUnits groupId: %d", groupId);
-
 		if(groupId > lastGroup)
 		{
 
@@ -173,6 +171,8 @@ namespace brainSpace
 			lastGroup = GetId(unitType, max, max, max);
 		}
 	
+		//ai->utility->ChatMsg("GetNewUnits groupId: %d", groupId);
+
 		GroupType = unitType;
 		int prevUnit = 0, tmpUnit = 0;
 		int tmpId = 0;
@@ -216,6 +216,21 @@ namespace brainSpace
 
 	int Group::GetId(int unitType, int unit1, int unit2, int unit3) {
 		int id = 0;
+		
+		//Fix input
+		if (unit1 > unit2)
+		{
+			swap(unit1, unit2);
+		}
+		if (unit1 > unit3)
+		{
+			swap(unit1,unit3);
+		}
+		if ( unit2 > unit3 )
+		{
+			swap(unit2,unit3);
+		}
+		
 		//unit1
 		int num_units = units_all[unitType].size();
 		int max = num_units ;
@@ -223,7 +238,7 @@ namespace brainSpace
 			id += SumRange(max - i, 1, max - i);
 		}
 		//unit2
-		id += SumRange(num_units - unit1, num_units - (unit2 - unit1 - 1), unit2-unit1 );
+		id += SumRange(num_units - unit1, num_units - unit2 + 1, unit2-unit1 );
 		//unit3
 		id += unit3 - unit2;
 		
@@ -372,14 +387,13 @@ namespace brainSpace
 			//Always ensure we have one null-unit, so that no group of size 0 can get a slot
 			friendlyUnits[GetNullId(friendlyUnitType)] = 1;
 		}	
-		ai->utility->ChatMsg("Number of enemy and friendly units should now match: %d == %d", num_enemies, num_friendlies);
 		
 		//Make the units count of the two team match the battle-dad of 3*4-player teams
 		float ratio = (float)(3*4) / num_friendlies;
-		ai->utility->ChatMsg("Battle match ratio: %f", ratio);
+		
 		num_friendlies *= ratio;
 		num_enemies *= ratio;
-		ai->utility->ChatMsg("Number of enemy and friendly units should now be 12: %d == %d", num_enemies, num_friendlies);
+		
 		for ( unsigned int i = 0; i < units_all[friendlyUnitType].size() ; i++ )
 		{
 			friendlyUnits[i] *= ratio;
@@ -391,8 +405,8 @@ namespace brainSpace
 		}
 
 
-		PrintUnitCounts(friendlyUnitType, friendlyUnits);
-		PrintUnitCounts(enemyUnitType, enemyUnits);
+		//PrintUnitCounts(friendlyUnitType, friendlyUnits);
+		//PrintUnitCounts(enemyUnitType, enemyUnits);
 
 		int *friendlyGroup = GetGroupFromUnits(friendlyUnits);
 		int *enemyGroup = GetGroupFromUnits(enemyUnits);
@@ -402,7 +416,7 @@ namespace brainSpace
 		int enemiesId = GetId(enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
 		
 		//Bug test START
-
+		/*
 		unsigned int printing_since = 0;
 		for ( unsigned int i = 0; i < TOTAL_NUMBER_OF_GAMES ; i++)
 		{
@@ -429,10 +443,11 @@ namespace brainSpace
 				}
 			}
 		}
+		*/
+		//ai->utility->ChatMsg("Got friendly team (%d) consisting of type %d units: %d, %d and %d", friendlyId, friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
 
-		ai->utility->ChatMsg("Got friendly team (%d) consisting of type %d units: %d, %d and %d", friendlyId, friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
-
-		ai->utility->ChatMsg("Got enemy team (%d) consisting of type %d units: %d, %d and %d", enemiesId, enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
+		//ai->utility->ChatMsg("Got enemy team (%d) consisting of type %d units: %d, %d and %d", enemiesId, enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
+		
 		//Bug test END
 
 
