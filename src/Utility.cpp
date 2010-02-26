@@ -69,7 +69,6 @@ Utility::Utility( AIClasses* aiClasses )
 		battles_file = file_name.str();
 		if ( !bfs->is_open() ) //Create file, if it doesn't exists
 		{
-			bfs->close();
 			bfs = new fstream( battles_file.c_str(), ios::out | ios::binary/* | ios::app*/);
 		}
 		bfs->close();

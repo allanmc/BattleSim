@@ -13,29 +13,9 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
-		//current_game = 5;
+		//current_game = 457;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
-		
-		/*
-		armpw(120),
-		armrock(127),
-		armham(82),
-		armjeth(89)
-		armwar(173),
-		armfav(61),
-		armflash(70),
-		armpincer(116),
-		armstump(151),
-		tawf013(368),
-		armjanus(88),
-		armsam(130),
-
-		armfig(68),
-		armthund(157),
-		armkam(90)
-
-		*/
 
 		vector<int> ground;
 		vector<int> air;
@@ -399,6 +379,11 @@ namespace brainSpace
 		int bestGame = -1;
 		int bestValue = 0;
 		
+		vector<Unit*> friendlies = ai->callback->GetFriendlyUnits();
+		vector<Unit*> enemies = ai->callback->GetEnemyUnits();
+		int num_enemies = enemies.size();
+		ai->utility->DeleteUnits(enemies);
+
 		for ( unsigned int i = start ; i < end ; i++ )
 		{
 			float goodness = ai->utility->ReadBattleValue( i, true );
@@ -406,12 +391,17 @@ namespace brainSpace
 			vector<int> units = GetNewUnits( myTeam, i );
 
 			float score = goodness;
-			//Substract the buildtime for the units it wants - thereby also including the cost of these
-			score -= ( units[0] >= 0 ? ai->utility->GetUnitDef(units[0])->GetBuildTime()/1000 : 0 );
-			score -= ( units[1] >= 0 ? ai->utility->GetUnitDef(units[1])->GetBuildTime()/1000 : 0 );
-			score -= ( units[2] >= 0 ? ai->utility->GetUnitDef(units[2])->GetBuildTime()/1000 : 0 );
+			//Substract the buildtime for the extra units we need - thereby also including the cost of these
+			vector<int> unitsCount;
+			
+			int unitType = CountGroupUnits(friendlies, unitsCount);
+			
+			ai->utility->DeleteUnits(friendlies);
+			score -= ((float)num_enemies/3-unitsCount[GetUnitId(unitType, units[0])])/(num_enemies/3) * ( units[0] >= 0 ? ai->utility->GetUnitDef(units[0])->GetBuildTime()/1000 : 0 );
+			score -= ((float)num_enemies/3-unitsCount[GetUnitId(unitType, units[1])])/(num_enemies/3) * ( units[1] >= 0 ? ai->utility->GetUnitDef(units[1])->GetBuildTime()/1000 : 0 );
+			score -= ((float)num_enemies/3-unitsCount[GetUnitId(unitType, units[2])])/(num_enemies/3) * ( units[2] >= 0 ? ai->utility->GetUnitDef(units[2])->GetBuildTime()/1000 : 0 );
 
-			ai->utility->ChatMsg("Current goodness (%d): %f, score: %f", i, goodness, score);
+			ai->utility->ChatMsg("Current goodness (%d=%d,%d,%d): %f, score: %f", i, units[0], units[1], units[2], goodness, score);
 
 			if ( bestGame<0 || score>bestValue )
 			{
@@ -419,6 +409,8 @@ namespace brainSpace
 				bestValue = score;
 			}
 		}
+
+		ai->utility->DeleteUnits(friendlies);
 
 		return GetNewUnits( myTeam, bestGame );
 	}
