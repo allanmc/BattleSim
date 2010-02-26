@@ -35,10 +35,11 @@ Utility::Utility( AIClasses* aiClasses )
 
 	safePosition = (SAIFloat3){map->GetWidth()*8/2, 0.0, map->GetHeight()*8/2};
 
-	if (ai->callback->GetTeamId()==0) {
-		avarage_file = string(dirs->GetWriteableDir()) + "battles.dat";
+	avarage_file = string(dirs->GetWriteableDir()) + "battles.dat";
 
-		bfs = NULL;
+	bfs = NULL;
+	if (ai->callback->GetTeamId()==0)
+	{
 		stringstream file_name;
 		int current = 0;
 		bool itsOkAlarm;
@@ -68,7 +69,7 @@ Utility::Utility( AIClasses* aiClasses )
 		bfs->close();
 		battles_file = file_name.str();
 
-		bfs = new fstream( battles_file.c_str(), ios::out | ios::binary/* | ios::app*/);
+		bfs = new fstream( battles_file.c_str(), ios::in | ios::out | ios::binary/* | ios::app*/);
 	}
 	
 	delete dirs;
@@ -199,14 +200,32 @@ void Utility::CalculateAverage()
 	delete dirs;
 }
 
-float Utility::ReadBattleValue(int current_game)
+float Utility::ReadBattleValue(int current_game, bool read_avarage)
 {
-	if (ai->callback->GetTeamId()!=0) {
-		return 0.0;
-	}
+	//if (ai->callback->GetTeamId()!=0) {
+	//	return 0.0;
+	//}
 	float value;
+	//fstream bfs_total( avarage_file.c_str() , ios::in | ios::binary);
+
+	if (read_avarage)
+	{
+		if (bfs != NULL)
+		{
+			bfs->close();
+		}
+		bfs = new fstream( avarage_file.c_str(), ios::in | ios::binary);
+	}
+
 	bfs->seekg (BATTLES_HEADER_SIZE+current_game*sizeof(value), ios::beg);
+	
 	bfs->read( (char*)&value, sizeof(value) );
+	
+	if (read_avarage)
+	{
+		bfs->close();
+		bfs = new fstream( battles_file.c_str(), ios::out | ios::binary);
+	}
 	return value;
 }
 
@@ -243,26 +262,33 @@ int Utility::GetCurrentGameNumber()
 	return count;
 }
 
-Unit* Utility::GiveUnit(const char* unitDefName)
+Unit* Utility::GiveUnit(int unitDefId)
 {
 	SGiveMeNewUnitCheatCommand giveUnitOrder;
 
-	SAIFloat3 pos = ai->utility->GetSafePosition();
+	SAIFloat3 pos = GetSafePosition();
 
-	if ( strcmp( unitDefName, "armthund" ) == 0 || strcmp( unitDefName, "armfig" ) == 0 || strcmp( unitDefName, "armkam" ) == 0 )
+	if ( unitDefId == 68 || unitDefId == 157 || unitDefId ==  90 ) //armthund, armfig, armkam
 	{
 		pos.x -= ( map->GetStartPos().x<map->GetWidth()*8/2 ? 700 : -700 );
 	}
 	else
+	{
 		pos.x -= ( map->GetStartPos().x<map->GetWidth()*8/2 ? 300 : -300 );
+	}
 	pos.x += ( rand() % 100 - 50);
 	pos.z += ( rand() % 100 - 50);
 
 	giveUnitOrder.pos = pos;
-	giveUnitOrder.unitDefId = ai->utility->GetUnitDef(unitDefName)->GetUnitDefId();
+	giveUnitOrder.unitDefId = unitDefId;
 	engine->HandleCommand(0,-1, COMMAND_CHEATS_GIVE_ME_NEW_UNIT, &giveUnitOrder);
 
 	return Unit::GetInstance(ai->callback, giveUnitOrder.ret_newUnitId);
+}
+
+Unit* Utility::GiveUnit(const char* unitDefName)
+{
+	return GiveUnit(GetUnitDef(unitDefName)->GetUnitDefId());
 }
 
 ///@return the safe position whether a building blocks the exit of out base
@@ -421,6 +447,26 @@ void Utility::ChatMsg(std::string msg)
 	cmd.text = msg.c_str();
 	cmd.zone = 0;
 	engine->HandleCommand(0, -1, COMMAND_SEND_TEXT_MESSAGE, &cmd);
+}
+
+///@return the UnitDef of with a given name, or NULL if the UnitDef does not exists
+UnitDef* Utility::GetUnitDef(int unitDefId)
+{
+	if(ai->frame > 0)
+	{
+		for ( int i = 0 ; i < (int)defs.size() ; i++ )
+		{
+			if ( defs[i]->GetUnitDefId() == unitDefId )
+			{
+				return defs[i];
+			}
+		}
+	}
+	else
+	{
+		Log(ALL, MISC, "Could not GetUnitDef, because frame==0, CRITICAL ERROR!");
+	}
+	return NULL;
 }
 
 ///@return the UnitDef of with a given name, or NULL if the UnitDef does not exists

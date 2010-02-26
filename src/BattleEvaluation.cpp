@@ -78,13 +78,13 @@ namespace brainSpace
 		}
 	}
 
-	void BattleEvaluation::PreGame( std::vector<Unit*> units, int battleID, std::vector<const char*> enemy )
+	void BattleEvaluation::PreGame( std::vector<Unit*> units, int battleID, std::vector<int> enemy )
 	{
 		vector<UnitDef*> eDefs;
 		
 		for ( unsigned int i = 0 ; i < enemy.size() ; i++ )
 		{
-			if ( strcmp( enemy[i], "nullair" ) ==  0 || strcmp( enemy[i], "nullground" ) == 0 )
+			if ( enemy[i] < 0 ) //Null-units are negative (-1, -2)
 				continue;
 			eDefs.push_back( ai->utility->GetUnitDef( enemy[i] ));
 		}

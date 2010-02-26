@@ -13,35 +13,54 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
-		//current_game = 90005;
+		//current_game = 1005;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
 		
-		vector<const char*> ground;
-		vector<const char*> air;
-		ground.push_back("armpw");		//0
-		ground.push_back("armrock");	//1
-		ground.push_back("armham");		//2
-		ground.push_back("armjeth");	//3
-		ground.push_back("armwar");		//4
-		//ground.push_back("armflea");
-		ground.push_back("armfav");		//5
-		ground.push_back("armflash");	//6
-		ground.push_back("armpincer");	//7
-		ground.push_back("armstump");	//8
-		ground.push_back("tawf013");	//9
-		ground.push_back("armjanus");	//10
-		ground.push_back("armsam");		//11
-		ground.push_back("nullground");	//12
+		/*
+		armpw(120),
+		armrock(127),
+		armham(82),
+		armjeth(89)
+		armwar(173),
+		armfav(61),
+		armflash(70),
+		armpincer(116),
+		armstump(151),
+		tawf013(368),
+		armjanus(88),
+		armsam(130),
+
+		armfig(68),
+		armthund(157),
+		armkam(90)
+
+		*/
+
+		vector<int> ground;
+		vector<int> air;
+		ground.push_back(120);	//0 - armpw
+		ground.push_back(127);	//1 - armrock
+		ground.push_back(82);	//2 - armham
+		ground.push_back(89);	//3 - armjeth
+		ground.push_back(173);	//4 - armwar
+		ground.push_back(61);	//5 - armfav
+		ground.push_back(70);	//6 - armflash
+		ground.push_back(116);	//7 - armpincer
+		ground.push_back(151);	//8 - armstump
+		ground.push_back(368);	//9 - tawf013
+		ground.push_back(88);	//10 - armjanus
+		ground.push_back(130);	//11 - armsam
+		ground.push_back(-1);	//12 - nullground
 
 		//air.push_back("armpeep");
-		air.push_back("nullair");
-		air.push_back("armfig");
-		air.push_back("armthund");
-		//air.push_back("armatlas");
-		air.push_back("armkam");
+		air.push_back(-2);	//0 - nullair
+		air.push_back(68);	//1 - armfig
+		air.push_back(157);	//2 - armthund
+		air.push_back(90);	//3 - armkam
 		units_all.push_back(ground);
 		units_all.push_back(air);
+
 
 		ai->utility->Log(ALL, MISC, "Done Constructing Group");
 	}
@@ -108,7 +127,7 @@ namespace brainSpace
 		
 		for ( unsigned int i = 0 ; i < units.size() ; i++ )
 		{
-			if ( (strcmp( units[i], "nullground" ) == 0 ) || ( strcmp( units[i], "nullair" ) == 0 ) )
+			if ( units[i] < 0 ) //Null-units a negtive (-1, -2)
 			{
 				//Skipping null-units
 				continue;
@@ -145,11 +164,11 @@ namespace brainSpace
 		return current_game;
 	}
 
-	vector<const char*> Group::GetNewUnits(int teamId, int currentGame)
-	{
-		vector<const char*> tmpUnits;
 
+	GroupInfo Group::GameToGroup(int teamId, int currentGame)
+	{
 		//magic
+		
 		int numberOfGroups = 0;
 		for(int i = 0; i<2; i++)
 		{
@@ -161,6 +180,8 @@ namespace brainSpace
 		int groupId = (teamId == 0 ? currentGame % numberOfGroups : currentGame / numberOfGroups );
 		int lastGroup = GetId(unitType, max, max, max);
 		
+		int globalGroupId = groupId;
+
 		if(groupId > lastGroup)
 		{
 
@@ -168,12 +189,24 @@ namespace brainSpace
 			max = units_all[unitType].size()-1;
 			groupId -= lastGroup+1; // +1 to get size
 			
-			lastGroup = GetId(unitType, max, max, max);
+			//lastGroup = GetId(unitType, max, max, max);
 		}
-	
+
+		return (GroupInfo){unitType,groupId,globalGroupId};		
+	}
+
+	vector<int> Group::GetNewUnits(int teamId, int currentGame)
+	{
+		vector<int> tmpUnits;
+
+		GroupInfo groupInfo = GameToGroup(teamId, currentGame);
+
+		int max = units_all[groupInfo.unitType].size()-1; //id of the last unit
+
+		
 		//ai->utility->ChatMsg("GetNewUnits groupId: %d", groupId);
 
-		GroupType = unitType;
+		GroupType = groupInfo.unitType;
 		int prevUnit = 0, tmpUnit = 0;
 		int tmpId = 0;
 		int block;
@@ -181,30 +214,30 @@ namespace brainSpace
 		max += 1; //new use of max as the number of units
 		//unit1
 		block = SumRange(max, 1, max);
-		while(groupId >= tmpId + block)
+		while(groupInfo.groupId >= tmpId + block)
 		{
 			tmpUnit++;
 			tmpId += block;
 			block = SumRange(max - tmpUnit, 1, max - tmpUnit);
 		}
-		tmpUnits.push_back(units_all[unitType][tmpUnit]);
+		tmpUnits.push_back(units_all[groupInfo.unitType][tmpUnit]);
 		prevUnit = tmpUnit;
 		tmpUnit = 0;
 		//unit2
 		block = max - prevUnit;
-		while(groupId >= tmpId + block)
+		while(groupInfo.groupId >= tmpId + block)
 		{
 			tmpUnit++;
 			tmpId += block;
 			block--;
 		}
 		tmpUnit += prevUnit;
-		tmpUnits.push_back(units_all[unitType][tmpUnit]);
+		tmpUnits.push_back(units_all[groupInfo.unitType][tmpUnit]);
 		prevUnit = tmpUnit;
 		tmpUnit = 0;
 		//unit3
-		tmpUnit = groupId - tmpId + prevUnit;
-		tmpUnits.push_back(units_all[unitType][tmpUnit]);
+		tmpUnit = groupInfo.groupId - tmpId + prevUnit;
+		tmpUnits.push_back(units_all[groupInfo.unitType][tmpUnit]);
 		//end magic	
 
 		return tmpUnits;
@@ -281,7 +314,7 @@ namespace brainSpace
 			unknownUnits++;//Pretend we won't find the unit
 			for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
 			{
-				if( strcmp(ud->GetName(), units_all[unitType][j]) == 0 )
+				if( ud->GetUnitDefId() == units_all[unitType][j] )
 				{
 					//ai->utility->ChatMsg("Added unit: (%d) %s", j, ud->GetName());
 					units[unitType][j]++;
@@ -308,7 +341,7 @@ namespace brainSpace
 		output << "GAME #" << game << ": ";
 		for (int i = 0; i <= 1 ; i++) {
 			output << "Team #" << i << " - ";
-			vector<const char*> team = GetNewUnits(i, game);
+			vector<int> team = GetNewUnits(i, game);
 			output << team[0] << ", ";
 			output << team[1] << ", ";
 			output << team[2] << "; ";
@@ -326,11 +359,11 @@ namespace brainSpace
 		ai->utility->ChatMsg(".");
 	}
 
-	int Group::GetUnitId(int unitType, const char* name)
+	int Group::GetUnitId(int unitType, int defId )
 	{
 		for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
 		{
-			if( strcmp(name, units_all[unitType][j]) == 0 )
+			if( units_all[unitType][j] == defId )
 			{
 				return j;
 			}
@@ -338,16 +371,55 @@ namespace brainSpace
 		return -1;
 	}
 
+	int Group::GetUnitId(int unitType, const char* name)
+	{
+		return GetUnitId(unitType, ai->utility->GetUnitDef(name)->GetUnitDefId());
+	}
+
 	int Group::GetNullId(int unitType)
 	{
 		for( unsigned int j = 0 ; j < units_all[unitType].size() ; j++ )
 		{
-			if( strcmp("nullground", units_all[unitType][j]) == 0 || strcmp("nullair", units_all[unitType][j]) == 0 )
+			if( units_all[unitType][j] < 0 ) //Null-units are negative (-1, -2)
 			{
 				return j;
 			}
 		}
 		return -1;
+	}
+
+
+	vector<int> Group::DetermineWhatToBuild()
+	{
+		GroupInfo groupInfo = GameToGroup(1, GetClosestGame());
+		unsigned int start = groupInfo.globalGroupId * sqrt(TOTAL_NUMBER_OF_GAMES) + 0;
+		unsigned int end = groupInfo.globalGroupId * sqrt(TOTAL_NUMBER_OF_GAMES) + sqrt(TOTAL_NUMBER_OF_GAMES);
+		
+		int myTeam = 0;
+		int bestGame = -1;
+		int bestValue = 0;
+		
+		for ( unsigned int i = start ; i < end ; i++ )
+		{
+			float goodness = ai->utility->ReadBattleValue( i, true );
+
+			vector<int> units = GetNewUnits( myTeam, i );
+
+			float score = goodness;
+			score -= ( units[0] >= 0 ? ai->utility->GetUnitDef(units[0])->GetBuildTime()/10000 : 0 );
+			score -= ( units[1] >= 0 ? ai->utility->GetUnitDef(units[1])->GetBuildTime()/10000 : 0 );
+			score -= ( units[2] >= 0 ? ai->utility->GetUnitDef(units[2])->GetBuildTime()/10000 : 0 );
+
+			ai->utility->ChatMsg("Current goodness (%d): %f, score: %f", i, goodness, score);
+
+			if ( bestGame<0 || score>bestValue )
+			{
+				bestGame = i;
+				bestValue = score;
+			}
+		}
+
+		return GetNewUnits( myTeam, bestGame );
 	}
 
 	int Group::GetClosestGame()
@@ -387,26 +459,6 @@ namespace brainSpace
 			//Always ensure we have one null-unit, so that no group of size 0 can get a slot
 			friendlyUnits[GetNullId(friendlyUnitType)] = 1;
 		}	
-		
-		//Make the units count of the two team match the battle-dad of 3*4-player teams
-		float ratio = (float)(3*4) / num_friendlies;
-		
-		num_friendlies *= ratio;
-		num_enemies *= ratio;
-		
-		for ( unsigned int i = 0; i < units_all[friendlyUnitType].size() ; i++ )
-		{
-			friendlyUnits[i] *= ratio;
-		}
-		
-		for ( unsigned int i = 0; i < units_all[enemyUnitType].size() ; i++ )
-		{
-			enemyUnits[i] *= ratio;
-		}
-
-
-		//PrintUnitCounts(friendlyUnitType, friendlyUnits);
-		//PrintUnitCounts(enemyUnitType, enemyUnits);
 
 		int *friendlyGroup = GetGroupFromUnits(friendlyUnits);
 		int *enemyGroup = GetGroupFromUnits(enemyUnits);
@@ -414,44 +466,8 @@ namespace brainSpace
 
 		int friendlyId = GetId(friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
 		int enemiesId = GetId(enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
-		
-		//Bug test START
-		/*
-		unsigned int printing_since = 0;
-		for ( unsigned int i = 0; i < TOTAL_NUMBER_OF_GAMES ; i++)
-		{
-			vector<const char*> units_tmp = GetNewUnits(0, i);
-			unsigned int new_id = GetId(0, GetUnitId(0, units_tmp[0]), GetUnitId(0, units_tmp[1]),GetUnitId(0, units_tmp[2]));
 
-			if ( i!=new_id && printing_since == 0 ) {
-				printing_since = i;
-				i = i - 5;
-				continue;
-			}
-
-			if (printing_since > 0) {
-				ai->utility->ChatMsg("Game #%d = %d, %d, %d >= %d",
-					i,
-					GetUnitId(0, units_tmp[0]),
-					GetUnitId(0, units_tmp[1]),
-					GetUnitId(0, units_tmp[2]),
-					new_id
-					);
-				if ( i > printing_since + 5 )
-				{
-					break;
-				}
-			}
-		}
-		*/
-		//ai->utility->ChatMsg("Got friendly team (%d) consisting of type %d units: %d, %d and %d", friendlyId, friendlyUnitType, friendlyGroup[0], friendlyGroup[1], friendlyGroup[2]);
-
-		//ai->utility->ChatMsg("Got enemy team (%d) consisting of type %d units: %d, %d and %d", enemiesId, enemyUnitType, enemyGroup[0], enemyGroup[1], enemyGroup[2]);
-		
-		//Bug test END
-
-
-		int game = friendlyId * sqrt(TOTAL_NUMBER_OF_GAMES) + enemiesId;
+		int game = enemiesId * sqrt(TOTAL_NUMBER_OF_GAMES) + friendlyId;
 		
 		ai->utility->DeleteUnits(friendlies);
 		ai->utility->DeleteUnits(enemies);

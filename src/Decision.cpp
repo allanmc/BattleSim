@@ -119,9 +119,16 @@ void Decision::Update(int frame)
 			group->GiveNewUnits();
 			if (ai->callback->GetTeamId()==1)
 			{
-				ai->utility->ChatMsg("I think this is the game %d, but we are in %d", group->GetClosestGame(), group->GetCurrentGame() );
-				ai->utility->ChatMsg("%s", group->PrintGame(group->GetClosestGame()).c_str() );
-				ai->utility->ChatMsg("%s", group->PrintGame(group->GetCurrentGame()).c_str() );
+				/*
+				vector<int> tis = group->DetermineWhatToBuild();
+				ai->utility->ChatMsg("We should build:");
+				ai->utility->ChatMsg("%s (%d)", (ai->utility->GetUnitDef(tis[0])!=NULL?ai->utility->GetUnitDef(tis[0])->GetName():"null"), tis[0]);
+				ai->utility->ChatMsg("%s (%d)", (ai->utility->GetUnitDef(tis[1])!=NULL?ai->utility->GetUnitDef(tis[1])->GetName():"null"), tis[1]);
+				ai->utility->ChatMsg("%s (%d)", (ai->utility->GetUnitDef(tis[2])!=NULL?ai->utility->GetUnitDef(tis[2])->GetName():"null"), tis[2]);
+				*/
+				//ai->utility->ChatMsg("I think this is the game %d, but we are in %d", group->GetClosestGame(), group->GetCurrentGame() );
+				//ai->utility->ChatMsg("%s", group->PrintGame(group->GetClosestGame()).c_str() );
+				//ai->utility->ChatMsg("%s", group->PrintGame(group->GetCurrentGame()).c_str() );
 			
 			}
 			lastSpawnFrame = frame;

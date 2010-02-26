@@ -53,13 +53,15 @@ namespace brainSpace
 		void LogNN(int logLevel, int logType, const char* msg, ...);
 		void ChatMsg(const char* msg, ...);
 		void ChatMsg(std::string msg);
+		springai::Unit* GiveUnit(int unitDefId);
 		springai::Unit* GiveUnit(const char* unitDefName);
-		float ReadBattleValue(int current_game);
+		float ReadBattleValue(int current_game, bool read_avarage=false);
 		void WriteBattleValue(int current_game, float value);
 		int GetCurrentGameNumber();
 		void CalculateAverage();
 		void DeleteUnits(std::vector<springai::Unit*> &units);
 		springai::UnitDef* GetUnitDef(const char* unitDefName);
+		springai::UnitDef* GetUnitDef(int unitDefId);
 		springai::Resource* GetResource(const char* resourceName);
 		int DrawCircle(SAIFloat3 pos, float radius );
 		int DrawCircle(SAIFloat3 pos, float radius, int figureId);

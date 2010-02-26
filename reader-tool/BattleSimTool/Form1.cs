@@ -21,7 +21,7 @@ namespace BattleSimTool
         public Form1()
         {
             InitializeComponent();
-            this.Show();
+            //this.Show();
             GameStuff gameStuff = new GameStuff();
 
             OpenFileDialog op = new OpenFileDialog();

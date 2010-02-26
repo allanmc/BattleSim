@@ -25,7 +25,7 @@ namespace brainSpace
 		BattleEvaluation( AIClasses* aiClasses );
 		virtual ~BattleEvaluation();
 
-		void PreGame( std::vector<springai::Unit*> units, int battleID, std::vector<const char*> enemy );
+		void PreGame( std::vector<springai::Unit*> units, int battleID, std::vector<int> enemy );
 		void PostGame( std::vector<springai::Unit*> friendly, std::vector<springai::Unit*> enemy, int battleID );
 
 	};
