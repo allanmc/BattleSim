@@ -1,8 +1,8 @@
 #ifndef _BRAIN_GLOBAL_H
 #define _BRAIN_GLOBAL_H
 
-#define LOG_TYPE (NONE)
-#define LOG_LEVEL 0
+#define LOG_TYPE (0)
+#define LOG_LEVEL NONE
 
 #define CALCULATE_AVERAGE false
 

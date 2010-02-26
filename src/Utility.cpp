@@ -66,9 +66,14 @@ Utility::Utility( AIClasses* aiClasses )
 				Log(ALL, MISC, "Current: %d, Length: %d, Games*4: %d", current, length, TOTAL_NUMBER_OF_GAMES*4);
 			}
 		} while (bfs->is_open() && itsOkAlarm );
-		bfs->close();
 		battles_file = file_name.str();
-
+		if ( !bfs->is_open() ) //Create file, if it doesn't exists
+		{
+			bfs->close();
+			bfs = new fstream( battles_file.c_str(), ios::out | ios::binary/* | ios::app*/);
+		}
+		bfs->close();
+		
 		bfs = new fstream( battles_file.c_str(), ios::in | ios::out | ios::binary/* | ios::app*/);
 	}
 	

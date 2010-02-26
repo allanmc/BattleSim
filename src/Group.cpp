@@ -13,7 +13,7 @@ namespace brainSpace
 		
 		ai->utility->Log(ALL, MISC, "Constructing Group");
 		current_game = ai->utility->GetCurrentGameNumber();
-		//current_game = 1005;
+		//current_game = 5;
 		//current_game = TOTAL_NUMBER_OF_GAMES-20;//start -1
 		ai->utility->Log( ALL, BATTLESIM, "GROUP: CURRENT GAME: %d", current_game );
 		
@@ -406,9 +406,10 @@ namespace brainSpace
 			vector<int> units = GetNewUnits( myTeam, i );
 
 			float score = goodness;
-			score -= ( units[0] >= 0 ? ai->utility->GetUnitDef(units[0])->GetBuildTime()/10000 : 0 );
-			score -= ( units[1] >= 0 ? ai->utility->GetUnitDef(units[1])->GetBuildTime()/10000 : 0 );
-			score -= ( units[2] >= 0 ? ai->utility->GetUnitDef(units[2])->GetBuildTime()/10000 : 0 );
+			//Substract the buildtime for the units it wants - thereby also including the cost of these
+			score -= ( units[0] >= 0 ? ai->utility->GetUnitDef(units[0])->GetBuildTime()/1000 : 0 );
+			score -= ( units[1] >= 0 ? ai->utility->GetUnitDef(units[1])->GetBuildTime()/1000 : 0 );
+			score -= ( units[2] >= 0 ? ai->utility->GetUnitDef(units[2])->GetBuildTime()/1000 : 0 );
 
 			ai->utility->ChatMsg("Current goodness (%d): %f, score: %f", i, goodness, score);
 
